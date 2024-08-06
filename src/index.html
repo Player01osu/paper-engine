@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Paper Engine</title>
+        <link href="css/style.css" rel="stylesheet">
+    </head>
+    <body>
+        <h1>Paper Engine</h1>
+        <input type="text" id="search-box">
+        <div id="results"></div>
+    </body>
+</html>
+
+<script>
+const addr = "http://127.0.0.1:42069"
+const search_box = document.getElementById("search-box");
+const search_results = document.getElementById("results");
+
+function update_search_results(results) {
+    search_results.replaceChildren();
+
+    for (const result of results) {
+        const div = document.createElement("div");
+        const a = document.createElement("a");
+        const span = document.createElement("span");
+
+        div.appendChild(span)
+        div.appendChild(a)
+        span.textContent = "Weight: " + result[0] + " ";
+        a.href = "file://" + result[1];
+        a.textContent = result[2];
+        // TODO: Symlink papers dir into project dir and just open
+        // it from there.
+        //
+        // TODO: Some how get this to open the local file
+        a.onclick = () => navigator.clipboard.writeText(a.href);
+
+        search_results.appendChild(div);
+    }
+}
+
+
+search_box.addEventListener("keypress", (e) => {
+    if (event.key == "Enter") {
+        e.preventDefault();
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", addr + "/api/document/search?s=" + search_box.value, true);
+
+        xhr.onload = () => {
+            try {
+                const results = JSON.parse(xhr.response);
+                update_search_results(results);
+            } catch (e) {
+                console.error("Failed to parse json: " + e);
+            }
+        };
+
+        xhr.send(null);
+    }
+});
+
+</script>
